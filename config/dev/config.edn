@@ -1,0 +1,3 @@
+{:database    {}
+ :ring-server {:port 8080}
+ :schema-path "schema.edn"}

@@ -1,20 +1,64 @@
-{:polylith {:vcs "git"
-            :top-namespace "fully"
-            :interface-ns "interface"
+{:polylith {:vcs                  "git"
+            :top-namespace        "fully"
+            :interface-ns         "interface"
             :default-profile-name "default"
-            :compact-views #{}
-            :release-tag-pattern "v[0-9]*"
-            :stable-tag-pattern "stable-*"
-            :project-to-alias {"development" "dev"}
-            :ns-to-lib {}}
+            :compact-views        #{}
+            :release-tag-pattern  "v[0-9]*"
+            :stable-tag-pattern   "stable-*"
+            :project-to-alias     {"development" "dev"
+                                   "demo"        "demo"}
+            :ns-to-lib            {}}
 
- :aliases  {:dev {:extra-paths ["development/src"]
-                  :extra-deps {org.clojure/clojure {:mvn/version "1.10.1"}
-                               org.clojure/tools.deps.alpha {:mvn/version "0.8.695"}}}
+ :aliases  {:dev  {:extra-paths ["development/src"
+                                 "development/resources"
+                                 "config/dev"
+                                 "protocols/src"
+                                 "bases/server/src"
+                                 "components/system/src"
+                                 "components/logger.timbre/src"
+                                 "components/database.crux/src"
+                                 "components/resolver.pathom/src"
+                                 "components/ring-server.undertow/src"
+                                 "components/ring-handler.reitit/src"
+                                 "components/routes.default/src"
+                                 "components/config.aero/src"
+                                 "components/middleware/src"
+                                 "components/errors/src"
+                                 "components/schema.malli/src"]
+                   :extra-deps  {org.clojure/clojure            {:mvn/version "1.10.1"}
+                                 org.clojure/tools.logging      {:mvn/version "1.1.0"}
+                                 org.clojure/tools.deps.alpha   {:mvn/version "0.8.695"}
+                                 org.clojure/tools.namespace    {:mvn/version "1.0.0"}
+                                 nrepl/nrepl                    {:mvn/version "0.8.3"}
 
-            :test {:extra-paths []}
+                                 hashp/hashp                    {:mvn/version "0.2.1"}
 
-            :poly {:main-opts ["-m" "polylith.clj.core.poly-cli.core"]
+                                 aero/aero                      {:mvn/version "1.1.6"}
+                                 com.fulcrologic/fulcro         {:mvn/version "3.5.0-RC3"}
+                                 com.stuartsierra/component     {:mvn/version "1.0.0"}
+                                 com.taoensso/timbre            {:mvn/version "5.1.2"}
+                                 ch.qos.logback/logback-classic {:mvn/version "1.2.3"}
+                                 com.wsscode/pathom3            {:mvn/version "2021.07.10-alpha"}
+
+                                 inflections/inflections        {:mvn/version "0.13.2"}
+                                 integrant/integrant            {:mvn/version "0.8.0"}
+                                 metosin/potpuri                {:mvn/version "0.5.3"}
+                                 metosin/reitit                 {:mvn/version "0.5.12"}
+                                 metosin/ring-http-response     {:mvn/version "0.9.2"}
+                                 ring/ring                      {:mvn/version "1.9.0"}
+                                 ring-cors/ring-cors            {:mvn/version "0.1.13"}
+                                 luminus/ring-undertow-adapter  {:mvn/version "1.2.1"}
+                                 juxt/crux-core                 {:mvn/version "21.01-1.14.0-beta"}}
+
+                   :main-opts   ["-e" "(require,'hashp.core)"
+                                 "-m" "nrepl.cmdline"]}
+
+
+            :test {:extra-paths ["test"
+                                 "components/database.crux/test"
+                                 "components/schema.malli/test"]}
+
+            :poly {:main-opts  ["-m" "polylith.clj.core.poly-cli.core"]
                    :extra-deps {polyfy/polylith
                                 {:git/url   "https://github.com/polyfy/polylith"
                                  :sha       "INSERT_LATEST_SHA_HERE"
