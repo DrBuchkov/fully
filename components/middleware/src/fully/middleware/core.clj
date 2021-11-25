@@ -1,13 +1,14 @@
 (ns fully.middleware.core
-  (:require [muuntaja.middleware :as middleware]
+  (:require [muuntaja.middleware :as mm]
             [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.cors :refer [wrap-cors]]
+            [ring.middleware.defaults :as rmd]
             [fully.errors.interface :refer [wrap-errors]]))
 
 (defn wrap-middleware [handler]
   (-> handler
-      wrap-params
+      (rmd/wrap-defaults rmd/api-defaults)
       wrap-errors
-      (wrap-cors :access-control-allow-origin [#".*"]
-                 :access-control-allow-methods [:get :put :post :delete :patch])
-      middleware/wrap-format))
+      #_(wrap-cors :access-control-allow-origin [#".*"]
+                   :access-control-allow-methods [:get :put :post :delete :patch])
+      mm/wrap-format))

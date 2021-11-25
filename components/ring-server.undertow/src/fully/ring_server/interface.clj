@@ -1,5 +1,5 @@
 (ns fully.ring-server.interface
   (:require [fully.ring-server.core :as core]))
 
-(defn http-server [config]
-  (core/http-server config))
+(defn create-ring-server []
+  (core/create-ring-server))

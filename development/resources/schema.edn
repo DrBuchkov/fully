@@ -1,14 +1,17 @@
 ; Example Schema
 
-{:example/user   [:map {:fully/entity? true}
+{:example/user   [:map {:fully/entity?   true
+                        :fully.entity/id :user/id}
                   [:user/id :uuid]
                   [:user/username :string]
                   [:user/password :string]
                   [:user/email :string]
-                  [:user/threads [:* [:ref :example/thread]]]
-                  #_[:user/comments [:vector [:ref :example/comment]]]]
+                  ;[:user/threads [:* [:ref :example/thread]]]
+                  ;[:user/comments [:vector [:ref :example/comment]]]
+                  ]
 
- :example/thread [:map {:fully/entity? true}
+ :example/thread [:map {:fully/entity?   true
+                        :fully.entity/id :thread/id}
                   [:thread/id :uuid]
                   [:thread/body :string]
                   #_[:thread/comments [:vector [:ref :example/comment]]]

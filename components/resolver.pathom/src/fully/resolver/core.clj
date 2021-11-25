@@ -1,7 +1,7 @@
 (ns fully.resolver.core
   (:require [fully.logger.interface :as log]
             [fully.protocols.resolver :refer [IResolver]]
-            [fully.protocols.db :refer [get-resource! list-resources!]]
+            [fully.protocols.repository :refer [fetch! find!]]
             [malli.core :as m]
             [malli.util :as mu]
             [potpuri.core :as pt]
@@ -36,7 +36,7 @@
           ::pco/output  schema-keys
           ; ex. ::pco/output :example/user => [:user/id :user/username :user/password :user/email]
           ::pco/resolve (fn [_ input]
-                          (get-resource! db schema-name (get input id-key)))}))
+                          (fetch! db schema-name (get input id-key)))}))
 
      ; fetch all resolver
      (let [op-name (str "all-" (i/plural unqualified-schema-name))
@@ -47,7 +47,7 @@
           ::pco/output  [{outkey [id-key]}]
           ; ex ::pco/output :example/user => {:example/all-users [:user/id :user/username :user/password :user/email]}
           ::pco/resolve (fn [_ _]
-                          {outkey (list-resources! db schema-name)})}))]))
+                          {outkey (find! db schema-name)})}))]))
 
 (defn schemas->resolvers [db schemas]
   (let [schema->resolvers (partial schema->resolvers db)]
@@ -56,10 +56,10 @@
          (map schema->resolvers)
          (apply concat))))
 
-(defrecord Resolver [schema-manager db-manager resolvers indexes]
+(defrecord Resolver [schema-manager repository resolvers indexes]
   component/Lifecycle
   (start [this]
-    (let [resolvers (schemas->resolvers db-manager (:schema schema-manager))
+    (let [resolvers (schemas->resolvers repository (:schema schema-manager))
           this (-> this
                    (assoc :resolvers resolvers)
                    (assoc :indexes (pci/register resolvers)))]

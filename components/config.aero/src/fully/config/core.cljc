@@ -6,7 +6,6 @@
   #?(:clj  (io/resource path)
      :cljs path))
 
-(def config (-> "config.edn"
-                source
-                aero/read-config))
-
+(def env (-> "env.edn"
+             source
+             aero/read-config))

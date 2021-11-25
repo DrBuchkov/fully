@@ -1,12 +1,12 @@
 (ns fully.ring-server.core
-  (:require [com.stuartsierra.component :as component]
-            [fully.middleware.interface :refer [wrap-middleware]]
-            [ring.adapter.undertow :refer [run-undertow]]
-            [fully.logger.interface :as log])
-  (:import (io.undertow Undertow)
-           (fully.protocols.ring IRingHandlerProvider)))
+  (:require [fully.middleware.interface :refer [wrap-middleware]]
+            [fully.config.interface :refer [env]]
+            [fully.logger.interface :as log]
+            [com.stuartsierra.component :as component]
+            [ring.adapter.undertow :refer [run-undertow]])
+  (:import (io.undertow Undertow)))
 
-(defrecord UndertowHttpServer [config ^IRingHandlerProvider ring-handler ^Undertow server]
+(defrecord UndertowHttpServer [config ring-handler ^Undertow server]
 
   component/Lifecycle
   (start [this]
@@ -23,5 +23,5 @@
       (log/info "Shut Down Undertow HTTP Server shut down")
       (assoc this :server nil))))
 
-(defn http-server [config]
-  (map->UndertowHttpServer {:config config}))
+(defn create-ring-server []
+  (map->UndertowHttpServer {:config (:ring-server env)}))

@@ -2,4 +2,4 @@
   (:require [fully.config.core :as core]))
 
 
-(def config core/config)
+(def env core/env)

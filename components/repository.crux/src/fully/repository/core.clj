@@ -1,28 +1,23 @@
-(ns fully.database.core
-  (:require [com.stuartsierra.component :as component]
-            [crux.api :as crux]
-            [fully.logger.interface :as log]
+(ns fully.repository.core
+  (:require [fully.config.interface :refer [env]]
             [fully.errors.interface :as err]
-            [fully.protocols.db :as db]
+            [fully.logger.interface :as log]
+            [fully.protocols.repository :as rep]
             [fully.protocols.schema :as s]
+            [com.stuartsierra.component :as component]
+            [crux.api :as crux]
             [malli.util :as mu]
-            [potpuri.core :as pt])
+            [potpuri.core :as pt]
+            [malli.core :as m])
   (:import (crux.api ICruxAPI)
            (java.util UUID)))
 
-(defn resource-exists? [conn id]
-  (ffirst (crux/q (crux/db conn)
-                  '{:find  [resource]
-                    :in    [id]
-                    :where [[resource :crux.db/id id]]}
-                  id)))
-
-(defrecord CruxConnectionManager [config schema-manager ^ICruxAPI conn]
+(defrecord CruxRepository [config schema-manager ^ICruxAPI conn]
 
   component/Lifecycle
   (start [this]
     (log/info "Starting connection with Crux database")
-    (let [conn (crux/start-node {})]
+    (let [conn (crux/start-node config)]
       (log/info "Connection with Crux database started")
       (assoc this :conn conn)))
 
@@ -34,22 +29,33 @@
       (assoc this :conn nil)))
 
   ; TODO: Should exceptions be thrown here?
-  db/IDatabaseManager
-  (create-resource! [_ type resource]
+  rep/IRepository
+  (save! [_ type resource]
     (when-not (s/valid? schema-manager type resource)
       (err/validation-error! (pt/map-of type resource)))
-    (let [id (UUID/randomUUID)]
-      [id (crux/submit-tx conn [[:crux.tx/put (-> resource
-                                                  (assoc :crux.db/id id)
-                                                  (assoc :fully.db/type type))]])]))
+    (let [id (UUID/randomUUID)
+          id-key (:fully.entity/id (s/properties schema-manager type))]
+      [id (crux/submit-tx
+            conn
+            [[:crux.tx/put
+              (-> resource
+                  (assoc id-key id)
+                  (assoc :crux.db/id id)
+                  (assoc :fully.db/type type))]])]))
 
-  (get-resource! [_ _ id]
+  (exists? [_ _ id]
+    (ffirst (crux/q (crux/db conn)
+                    '{:find  [resource]
+                      :in    [id]
+                      :where [[resource :crux.db/id id]]}
+                    id)))
+  (fetch! [_ _ id]
     (let [entity (crux/entity (crux/db conn) id)]
       (when-not entity
         (err/not-found! {:id id}))
       entity))
 
-  (list-resources! [_ type]
+  (find! [_ type]
     (-> (crux/q (crux/db conn)
                 '{:find  [(pull ?resource [*])]
                   :in    [?type]
@@ -58,24 +64,9 @@
         seq
         flatten))
 
-  (put-resource! [_ type id resource]
-    (when-not (resource-exists? conn id)
-      (err/not-found! (pt/map-of id)))
-
-    (when-not (s/valid? schema-manager type resource mu/closed-schema)
-      (err/validation-error! (pt/map-of type resource)))
-
-    {:id       id
-     :resource resource
-     :tx       (crux/submit-tx conn [[:crux.tx/put
-                                      ; Make sure that :crux.db/id, :fully.db/type are not overridden
-                                      (-> resource
-                                          (assoc :crux.db/id id)
-                                          (assoc :fully.db/type type))]])})
-
-  (patch-resource! [this type id resource]
+  (update! [_ type id resource]
     (when-not (s/valid? schema-manager type resource
-                          (comp mu/closed-schema mu/optional-keys))
+                        {:pipe mu/optional-keys})
       (err/validation-error! (pt/map-of type resource)))
 
     (let [current-resource (crux/entity (crux/db conn) id)
@@ -91,12 +82,12 @@
                                        (assoc :crux.db/id id)
                                        (assoc :fully.db/type type))]])}))
 
-  (delete-resource! [_ _ id]
-    (when-not (resource-exists? conn id)
+  (delete! [this type id]
+    (when-not (rep/exists? this type id)
       (err/not-found! (pt/map-of id)))
     (crux/submit-tx conn [[:crux.tx/delete id]])))
 
-(defn create-db-manager [config]
-  (map->CruxConnectionManager {:config config}))
+(defn create-repository []
+  (map->CruxRepository {:config (:repository env)}))
 
 

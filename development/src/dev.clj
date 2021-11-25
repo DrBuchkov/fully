@@ -1,9 +1,9 @@
 (ns dev
   (:require [clojure.tools.namespace.repl :as tn]
             [fully.server.core :refer [start-app! stop-app!]]
+            [fully.protocols.schema :as schema]
             [malli.core :as m]
             [malli.util :as mu]
-            [malli.generator :as mg]
             [malli.generator :as mg]))
 
 (defonce system (atom nil))
