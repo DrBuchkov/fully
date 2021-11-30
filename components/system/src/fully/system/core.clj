@@ -1,12 +1,12 @@
 (ns fully.system.core
-  (:require [fully.config.interface :refer [env]]
+  (:require [fully.config.api :refer [env]]
             [com.stuartsierra.component :as component]
-            [fully.repository.interface :as db]
-            [fully.resolver.interface :as resolver]
-            [fully.routes.interface :refer [routes]]
-            [fully.ring-handler.interface :as handler]
-            [fully.ring-server.interface :as server]
-            [fully.schema.interface :as schema]))
+            [fully.repository.api :as db]
+            [fully.resolver.api :as resolver]
+            [fully.routes.api :refer [routes]]
+            [fully.ring-handler.api :as handler]
+            [fully.ring-server.api :as server]
+            [fully.schema.api :as schema]))
 
 (defn create-system []
   (component/system-map
@@ -17,7 +17,4 @@
     :resolver (component/using
                 (resolver/create-resolver)
                 [:repository :schema-manager])
-    :ring-handler (handler/create-ring-handler routes)
-    :ring-server (component/using
-                   (server/create-ring-server)
-                   [:ring-handler])))
+    :ring-server (server/create-ring-server)))

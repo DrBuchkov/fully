@@ -1,5 +1,5 @@
 (ns fully.server.core
-  (:require [fully.system.interface :as sys]
+  (:require [fully.system.api :as sys]
             [com.stuartsierra.component :as component])
   (:gen-class))
 

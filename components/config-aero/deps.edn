@@ -1,5 +1,5 @@
 {:paths   ["src"]
- :deps    {metosin/ring-http-response {:mvn/version "0.9.2"}}
+ :deps    {aero/aero                      {:mvn/version "1.1.6"}}
  :aliases {:test {:extra-deps  {}
                   :extra-paths []}}}
 

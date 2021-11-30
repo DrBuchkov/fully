@@ -3,7 +3,7 @@
             [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.cors :refer [wrap-cors]]
             [ring.middleware.defaults :as rmd]
-            [fully.errors.interface :refer [wrap-errors]]))
+            [fully.errors.api :refer [wrap-errors]]))
 
 (defn wrap-middleware [handler]
   (-> handler

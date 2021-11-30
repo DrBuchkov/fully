@@ -1,0 +1,9 @@
+{:paths   ["src"]
+ :deps    {com.stuartsierra/component {:mvn/version "1.0.0"}
+           metosin/malli              {:mvn/version "0.6.1"}
+           metosin/potpuri            {:mvn/version "0.5.3"}
+           juxt/crux-core             {:mvn/version "21.01-1.14.0-beta"}}
+ :aliases {:test {:extra-deps  {}
+                  :extra-paths ["test"
+                                "../../test"]}}}
+

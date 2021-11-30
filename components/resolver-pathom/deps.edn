@@ -1,0 +1,9 @@
+{:paths   ["src"]
+ :deps    {metosin/malli           {:mvn/version "0.6.1"}
+           metosin/potpuri         {:mvn/version "0.5.3"}
+           inflections/inflections {:mvn/version "0.13.2"}
+           com.wsscode/pathom3            {:mvn/version "2021.07.10-alpha"}
+           com.stuartsierra/component     {:mvn/version "1.0.0"}}
+ :aliases {:test {:extra-deps  {}
+                  :extra-paths []}}}
+

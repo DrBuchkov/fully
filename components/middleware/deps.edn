@@ -1,5 +1,8 @@
-{:paths ["src"]
- :deps {}
- :aliases {:test {:extra-deps {}
+{:paths   ["src"]
+ :deps    {ring/ring           {:mvn/version "1.9.0"}
+           ring/ring-defaults  {:mvn/version "0.3.3"}
+           ring-cors/ring-cors {:mvn/version "0.1.13"}
+           metosin/muuntaja    {:mvn/version "0.6.8"}}
+ :aliases {:test {:extra-deps  {}
                   :extra-paths []}}}
 

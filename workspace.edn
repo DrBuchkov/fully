@@ -1,12 +1,10 @@
-{:top-namespace "fully"
- :interface-ns "interface"
+{:top-namespace        "fully"
+ :interface-ns         "api"
  :default-profile-name "default"
- :compact-views #{}
- :vcs {:auto-add false
-       :name "git"}
- :tag-patterns {:release "v[0-9]*"
-                :stable "stable-*"}
- :projects {"cljs-project" {:alias "cljs-project"}
-            "demo" {:alias "demo"}
-            "development" {:alias "dev"}}}
+ :compact-views        #{}
+ :vcs                  {:auto-add false
+                        :name     "git"}
+ :tag-patterns         {:release "v[0-9]*"
+                        :stable  "stable-*"}
+ :projects             {"development" {:alias "dev"}}}
 

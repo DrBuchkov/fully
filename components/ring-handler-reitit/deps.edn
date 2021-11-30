@@ -1,0 +1,6 @@
+{:paths   ["src"]
+ :deps    {com.stuartsierra/component {:mvn/version "1.0.0"}
+           metosin/reitit             {:mvn/version "0.5.12"}}
+ :aliases {:test {:extra-deps  {}
+                  :extra-paths []}}}
+

@@ -5,7 +5,7 @@
                                              unauthorized
                                              forbidden
                                              internal-server-error]]
-            [fully.logger.interface :as log])
+            [fully.logger.api :as log])
   (:import (clojure.lang ExceptionInfo)))
 
 (def err-data (comp :fully.http.error/data ex-data))

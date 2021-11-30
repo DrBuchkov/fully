@@ -1,8 +1,6 @@
 ; Example Schema
 
-{:example/user   [:map {:fully/entity?   true
-                        :fully.entity/id :user/id}
-                  [:user/id :uuid]
+{:example/user   [:map {:fully/entity? true}
                   [:user/username :string]
                   [:user/password :string]
                   [:user/email :string]
@@ -10,9 +8,7 @@
                   ;[:user/comments [:vector [:ref :example/comment]]]
                   ]
 
- :example/thread [:map {:fully/entity?   true
-                        :fully.entity/id :thread/id}
-                  [:thread/id :uuid]
+ :example/thread [:map {:fully/entity? true}
                   [:thread/body :string]
                   #_[:thread/comments [:vector [:ref :example/comment]]]
                   ]
