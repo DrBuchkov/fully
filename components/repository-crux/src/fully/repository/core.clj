@@ -2,7 +2,8 @@
   (:require [fully.config.api :refer [env]]
             [fully.errors.api :as err]
             [fully.logger.api :as log]
-            [fully.protocols.api :as proto]
+            [fully.repository-protocol.api :as repo]
+            [fully.schema-manager-protocol.api :as scm]
             [com.stuartsierra.component :as component]
             [crux.api :as crux]
             [malli.util :as mu]
@@ -27,11 +28,11 @@
       (assoc this :conn nil)))
 
   ; TODO: Should exceptions be thrown here?
-  proto/IRepository
+  repo/IRepository
   (save! [_ type resource]
-    (when-not (proto/valid? schema-manager type resource)
+    (when-not (scm/valid? schema-manager type resource)
       (err/validation-error! (pt/map-of type resource)))
-    (let [entity-id-key (proto/entity-id-key schema-manager type)
+    (let [entity-id-key (scm/entity-id-key schema-manager type)
           id (or (get resource entity-id-key) (UUID/randomUUID))]
       [id (crux/submit-tx
             conn
@@ -62,8 +63,8 @@
         flatten))
 
   (update! [_ type id resource]
-    (when-not (proto/valid? schema-manager type resource
-                            {:pipe mu/optional-keys})
+    (when-not (scm/valid? schema-manager type resource
+                          {:pipe mu/optional-keys})
       (err/validation-error! (pt/map-of type resource)))
 
     (let [current-resource (crux/entity (crux/db conn) id)
@@ -80,7 +81,7 @@
                                        (assoc :fully.db/type type))]])}))
 
   (delete! [this type id]
-    (when-not (proto/exists? this type id)
+    (when-not (repo/exists? this type id)
       (err/not-found! (pt/map-of id)))
     (crux/submit-tx conn [[:crux.tx/delete id]])))
 

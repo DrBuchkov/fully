@@ -2,10 +2,11 @@
                                 "development/resources"
 
                                 "bases/server/src"
-                                "components/protocols/src"
                                 "components/system/src"
                                 "components/logger-timbre/src"
+                                "components/repository-protocol/src"
                                 "components/repository-crux/src"
+                                "components/resolver-protocol/src"
                                 "components/resolver-pathom/src"
                                 "components/resolver-gen/src"
                                 "components/ring-server-jetty/src"
@@ -14,6 +15,7 @@
                                 "components/config-aero/src"
                                 "components/middleware/src"
                                 "components/errors/src"
+                                "components/schema-manager-protocol/src"
                                 "components/schema-malli/src"]
                   :extra-deps  {org.clojure/clojure            {:mvn/version "1.10.1"}
                                 org.clojure/tools.logging      {:mvn/version "1.1.0"}

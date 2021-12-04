@@ -1,6 +1,6 @@
 (ns fully.resolver.core
   (:require [fully.logger.api :as log]
-            [fully.protocols.api :as proto]
+            [fully.resolver-protocol.api :as res]
             [potpuri.core :as pt]
             [com.wsscode.pathom3.connect.indexes :as pci]
             [com.wsscode.pathom3.interface.eql :as p.eql]
@@ -21,8 +21,8 @@
         (assoc :resolvers nil)
         (assoc :indexes nil)))
 
-  proto/IResolver
-  (register-resolver [this op]
+  res/IResolver
+  (register [this op]
     (-> this
         (update :indexes pci/register op)
         (update :resolvers pt/conjv op)))

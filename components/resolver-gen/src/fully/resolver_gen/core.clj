@@ -1,7 +1,7 @@
 (ns fully.resolver-gen.core
   (:require [potpuri.core :as pt]
             [inflections.core :as i]
-            [fully.protocols.api :as proto]
+            [fully.repository-protocol.api :as repo]
             [com.wsscode.pathom3.connect.operation :as pco]
             [malli.core :as m]))
 
@@ -33,7 +33,7 @@
           ::pco/output  schema-keys
           ; ex. ::pco/output :example/user => [:user/id :user/username :user/password :user/email]
           ::pco/resolve (fn [_ input]
-                          (proto/fetch! db schema-name (get input id-key)))}))
+                          (repo/fetch! db schema-name (get input id-key)))}))
 
      ; fetch all resolver
      (let [op-name (str "all-" (i/plural unqualified-schema-name))
@@ -44,7 +44,7 @@
           ::pco/output  [{outkey [id-key]}]
           ; ex ::pco/output :example/user => {:example/all-users [:user/id :user/username :user/password :user/email]}
           ::pco/resolve (fn [_ _]
-                          {outkey (proto/find! db schema-name)})}))]))
+                          {outkey (repo/find! db schema-name)})}))]))
 
 (defn schemas->resolvers [db schemas]
   (let [schema->resolvers (partial schema->resolvers db)]

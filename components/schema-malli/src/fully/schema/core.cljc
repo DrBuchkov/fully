@@ -4,7 +4,7 @@
             [aero.core :as aero]
             [malli.core :as m]
             [malli.generator :as mg]
-            [fully.protocols.api :as proto]
+            [fully.schema-manager-protocol.api :as scm]
             [fully.config.api :refer [env]]
             [clojure.test.check.generators :as gen]
             [malli.util :as mu]))
@@ -28,7 +28,7 @@
         (assoc :registry nil)
         (assoc :generator nil)))
 
-  proto/ISchemaManager
+  scm/ISchemaManager
   (properties [_ type]
     (-> type
         (m/schema {:registry registry})
@@ -39,7 +39,7 @@
     :crux.db/id)
 
   (valid? [this type data]
-    (proto/valid? this type data nil))
+    (scm/valid? this type data nil))
 
   (valid? [_ type data {:keys [pipe]
                         :or   {pipe identity}}]
@@ -48,7 +48,7 @@
         (m/validate data)))
 
   (generate [this type]
-    (proto/generate this type nil))
+    (scm/generate this type nil))
 
   (generate [_ type {:keys [pipe]
                      :or   {pipe identity}}]
@@ -58,7 +58,7 @@
         gen/generate))
 
   (sample [this type]
-    (proto/sample this type nil))
+    (scm/sample this type nil))
 
   (sample [_ type {:keys [pipe sample-num]
                    :or   {pipe identity sample-num 10}}]
