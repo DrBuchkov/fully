@@ -9,6 +9,6 @@
   (-> handler
       (rmd/wrap-defaults rmd/api-defaults)
       wrap-errors
-      #_(wrap-cors :access-control-allow-origin [#".*"]
-                   :access-control-allow-methods [:get :put :post :delete :patch])
+      (wrap-cors :access-control-allow-origin [#".*"]
+                 :access-control-allow-methods [:get :put :post :delete :patch])
       mm/wrap-format))

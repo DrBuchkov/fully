@@ -36,7 +36,7 @@
         m/properties))
 
   (entity-id-key [_ _]
-    :crux.db/id)
+    :xt/id)
 
   (valid? [this type data]
     (scm/valid? this type data nil))

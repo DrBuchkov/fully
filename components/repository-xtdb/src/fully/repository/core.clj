@@ -5,26 +5,26 @@
             [fully.repository-protocol.api :as repo]
             [fully.schema-manager-protocol.api :as scm]
             [com.stuartsierra.component :as component]
-            [crux.api :as crux]
+            [xtdb.api :as xtdb]
             [malli.util :as mu]
             [potpuri.core :as pt])
   (:import (java.util UUID)
-           (crux.api ICruxAPI)))
+           (xtdb.api IXtdb)))
 
-(defrecord CruxRepository [config schema-manager ^ICruxAPI conn]
+(defrecord XtdbRepository [config schema-manager ^IXtdb conn]
 
   component/Lifecycle
   (start [this]
-    (log/info "Starting connection with Crux database")
-    (let [conn (crux/start-node config)]
-      (log/info "Connection with Crux database started")
+    (log/info "Starting connection with XTDB database")
+    (let [conn (xtdb/start-node config)]
+      (log/info "Connection with XTDB database started")
       (assoc this :conn conn)))
 
   (stop [this]
     (when conn
-      (log/info "Stopping Crux Database connection")
+      (log/info "Stopping XTDB Database connection")
       (.close conn)
-      (log/info "Crux Database connection stopped")
+      (log/info "XTDB Database connection stopped")
       (assoc this :conn nil)))
 
   ; TODO: Should exceptions be thrown here?
@@ -34,27 +34,27 @@
       (err/validation-error! (pt/map-of type resource)))
     (let [entity-id-key (scm/entity-id-key schema-manager type)
           id (or (get resource entity-id-key) (UUID/randomUUID))]
-      [id (crux/submit-tx
+      [id (xtdb/submit-tx
             conn
-            [[:crux.tx/put
+            [[::xtdb/put
               (-> resource
                   (assoc entity-id-key id)
                   (assoc :fully.db/type type))]])]))
 
   (exists? [_ _ id]
-    (ffirst (crux/q (crux/db conn)
+    (ffirst (xtdb/q (xtdb/db conn)
                     '{:find  [resource]
                       :in    [id]
-                      :where [[resource :crux.db/id id]]}
+                      :where [[resource :xt/id id]]}
                     id)))
   (fetch! [_ _ id]
-    (let [entity (crux/entity (crux/db conn) id)]
+    (let [entity (xtdb/entity (xtdb/db conn) id)]
       (when-not entity
         (err/not-found! {:id id}))
       entity))
 
   (find! [_ type]
-    (-> (crux/q (crux/db conn)
+    (-> (xtdb/q (xtdb/db conn)
                 '{:find  [(pull ?resource [*])]
                   :in    [?type]
                   :where [[?resource :fully.db/type ?type]]}
@@ -67,25 +67,25 @@
                           {:pipe mu/optional-keys})
       (err/validation-error! (pt/map-of type resource)))
 
-    (let [current-resource (crux/entity (crux/db conn) id)
+    (let [current-resource (xtdb/entity (xtdb/db conn) id)
           _ (when-not current-resource
               (err/not-found! (pt/map-of id)))
           updated-resource (merge current-resource resource)]
       {:id       id
        :resource updated-resource
-       :tx       (crux/submit-tx conn
-                                 [[:crux.tx/put
-                                   ; Make sure that :crux.db/id, :fully.db/type are not overridden
+       :tx       (xtdb/submit-tx conn
+                                 [[::xtdb/put
+                                   ; Make sure that :xt/id, :fully.db/type are not overridden
                                    (-> updated-resource
-                                       (assoc :crux.db/id id)
+                                       (assoc :xt/id id)
                                        (assoc :fully.db/type type))]])}))
 
   (delete! [this type id]
     (when-not (repo/exists? this type id)
       (err/not-found! (pt/map-of id)))
-    (crux/submit-tx conn [[:crux.tx/delete id]])))
+    (xtdb/submit-tx conn [[:XTDB.tx/delete id]])))
 
 (defn create-repository []
-  (map->CruxRepository {:config (:repository env)}))
+  (map->XtdbRepository {:config (:repository env)}))
 
 

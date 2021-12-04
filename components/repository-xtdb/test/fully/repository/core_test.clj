@@ -6,7 +6,7 @@
             [fully.repository-protocol.api :as repo]
             [fully.schema-manager-protocol.api :as scm]
             [com.stuartsierra.component :as component]
-            [crux.api :as crux]))
+            [xtdb.api :as xtdb]))
 
 (add-tap (bound-fn* clojure.pprint/pprint))
 
@@ -24,22 +24,22 @@
         {:keys [conn]} repository
         user (scm/generate schema-manager :example/user)
         [user-id tx] (repo/save! repository :example/user user)
-        _ (crux/await-tx conn tx)]
+        _ (xtdb/await-tx conn tx)]
     (testing "should return a generated user id"
       (is (not (nil? user-id))))
     (testing "should return a transaction"
       (is (not (nil? tx))))
     (testing "should add user to db"
-      (let [queried-user (crux/entity (crux/db conn) user-id)]
+      (let [queried-user (xtdb/entity (xtdb/db conn) user-id)]
         (is (= queried-user
                (-> user
                    (assoc :fully.db/type :example/user)
-                   (assoc :crux.db/id user-id))))))
+                   (assoc :xt/id user-id))))))
     (testing "should update existing user in db"
-      (let [updated-user (-> (crux/entity (crux/db conn) user-id)
+      (let [updated-user (-> (xtdb/entity (xtdb/db conn) user-id)
                              (assoc :user/email "johndoe@mail.com"))
             [updated-user-id tx] (repo/save! repository :example/user updated-user)
-            _ (crux/await-tx conn tx)
-            queried-user (crux/entity (crux/db conn) updated-user-id)]
+            _ (xtdb/await-tx conn tx)
+            queried-user (xtdb/entity (xtdb/db conn) updated-user-id)]
         (is (= user-id updated-user-id))
         (is (= queried-user updated-user))))))

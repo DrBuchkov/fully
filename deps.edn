@@ -5,7 +5,7 @@
                                 "components/system/src"
                                 "components/logger-timbre/src"
                                 "components/repository-protocol/src"
-                                "components/repository-crux/src"
+                                "components/repository-xtdb/src"
                                 "components/resolver-protocol/src"
                                 "components/resolver-pathom/src"
                                 "components/resolver-gen/src"
@@ -16,7 +16,7 @@
                                 "components/middleware/src"
                                 "components/errors/src"
                                 "components/schema-manager-protocol/src"
-                                "components/schema-malli/src"]
+                                "components/schema-manager-malli/src"]
                   :extra-deps  {org.clojure/clojure            {:mvn/version "1.10.1"}
                                 org.clojure/tools.logging      {:mvn/version "1.1.0"}
                                 org.clojure/tools.deps.alpha   {:mvn/version "0.8.695"}
@@ -40,13 +40,14 @@
                                 ring/ring                      {:mvn/version "1.9.0"}
                                 ring/ring-defaults             {:mvn/version "0.3.3"}
                                 ring-cors/ring-cors            {:mvn/version "0.1.13"}
-                                juxt/crux-core                 {:mvn/version "21.01-1.14.0-beta"}
+                                com.xtdb/xtdb-core             {:mvn/version "1.20.0"}
+
 
                                 ;fully/config                 {:local/root "components/config-aero"}
                                 ;fully/errors                 {:local/root "components/errors"}
                                 ;fully/logger                 {:local/root "components/logger-timbre"}
                                 ;fully/middleware             {:local/root "components/middleware"}
-                                ;fully/repository             {:local/root "components/repository-crux"}
+                                ;fully/repository             {:local/root "components/repository-xtdb"}
                                 ;fully/resolver               {:local/root "components/resolver-pathom"}
                                 ;fully/ring-handler           {:local/root "components/ring-handler-reitit"}
                                 ;fully/ring-server            {:local/root "components/ring-server-jetty"}
@@ -61,8 +62,8 @@
 
 
            :test {:extra-paths ["components/test-helper/src"
-                                "components/repository-crux/test"
-                                "components/schema-malli/test"]}
+                                "components/repository-xtdb/test"
+                                "components/schema-manager-malli/test"]}
 
            :poly {:main-opts  ["-m" "polylith.clj.core.poly-cli.core"]
                   :extra-deps {polyfy/polylith
