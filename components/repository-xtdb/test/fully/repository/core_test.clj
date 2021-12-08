@@ -80,7 +80,7 @@
       (is (= stored-updated-user
              (assoc stored-user :user/email "johndoe@mail.com"))))))
 
-(deftest save!--invalid-user-test
+(deftest save!--invalid-new-user-test
   (let [{:keys [repository]} *system*
         user {:invalid :user}]
     (is (= (catch-thrown-info (repo/save! repository :example/user user))
@@ -88,3 +88,17 @@
             :data {:fully.http.error/type :fully.http.error/validation-error
                    :fully.http.error/data {:type :example/user
                                            :data user}}}))))
+
+(deftest save!--invalid-existing-user-test
+  (let [{:keys [repository schema-manager]} *system*
+        {:keys [conn]} repository
+        user (scm/generate schema-manager :example/user)
+        [user-id tx] (repo/save! repository :example/user user)
+        _ (xtdb/await-tx conn tx)
+        stored-user (xtdb/entity (xtdb/db conn) user-id)
+        updated-user (assoc stored-user :user/email 1234)]
+    (is (= (catch-thrown-info (repo/save! repository :example/user updated-user))
+           {:msg  "Data do not conform with schema"
+            :data {:fully.http.error/type :fully.http.error/validation-error
+                   :fully.http.error/data {:type :example/user
+                                           :data updated-user}}}))))
