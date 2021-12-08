@@ -79,3 +79,12 @@
     (testing "stored-updated-user should equal stored-user except for updated key"
       (is (= stored-updated-user
              (assoc stored-user :user/email "johndoe@mail.com"))))))
+
+(deftest save!--invalid-user-test
+  (let [{:keys [repository]} *system*
+        user {:invalid :user}]
+    (is (= (catch-thrown-info (repo/save! repository :example/user user))
+           {:msg  "Data do not conform with schema"
+            :data {:fully.http.error/type :fully.http.error/validation-error
+                   :fully.http.error/data {:type :example/user
+                                           :data user}}}))))

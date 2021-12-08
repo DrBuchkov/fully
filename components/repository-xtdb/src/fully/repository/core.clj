@@ -29,25 +29,23 @@
   repo/IRepository
   (save! [_ type resource]
     (let [children (scm/children schema-manager type)
-          _ (clojure.pprint/pprint children)
           generated-children (into {}
                                    (for [[child-key child-props child-schema] children
                                          :when (and (:fully.entity.generate/generated child-props)
                                                     (not (get resource child-key)))]
                                      [child-key (scm/generate schema-manager child-schema)]))
-          _ (clojure.pprint/pprint generated-children)
-          resource (merge resource generated-children)
+          augmented-resource (merge resource generated-children)
           ; generate entities props that are nil and can be automatically generated.
-          _ (when-not (scm/valid? schema-manager type resource)
-              (err/validation-error! (pt/map-of type resource)))
+          _ (when-not (scm/valid? schema-manager type augmented-resource)
+              (err/validation-error! {:type type
+                                      :data resource}))
           ; Check for valid resource after nil children are generated
           {:keys [fully.entity/id-key]} (scm/properties schema-manager type)
-          id (get resource id-key)
-          _ (println "id: " id)]
+          id (get augmented-resource id-key)]
       [id (xtdb/submit-tx
             conn
             [[::xtdb/put
-              (-> resource
+              (-> augmented-resource
                   (assoc :xt/id id)
                   (assoc :fully.db/type type))]])]))
 
