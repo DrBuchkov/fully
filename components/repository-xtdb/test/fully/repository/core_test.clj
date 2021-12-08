@@ -6,7 +6,8 @@
             [fully.repository-protocol.api :as repo]
             [fully.schema-manager-protocol.api :as scm]
             [com.stuartsierra.component :as component]
-            [xtdb.api :as xtdb]))
+            [xtdb.api :as xtdb]
+            [malli.util :as mu]))
 
 (add-tap (bound-fn* clojure.pprint/pprint))
 
@@ -19,27 +20,62 @@
 
 (use-fixtures :each (with-system create-system))
 
-(deftest save!-test
+(deftest save!--new-user-with-id-test
   (let [{:keys [repository schema-manager]} *system*
         {:keys [conn]} repository
-        user (scm/generate schema-manager :example/user)
+        {:keys [user/id] :as user} (scm/generate schema-manager :example/user)
         [user-id tx] (repo/save! repository :example/user user)
-        _ (xtdb/await-tx conn tx)]
+        _ (xtdb/await-tx conn tx)
+        stored-user (xtdb/entity (xtdb/db conn) user-id)]
+    (testing "should return a user id"
+      (is (not (nil? user-id))))
+    (testing "should return a transaction"
+      (is (not (nil? tx))))
+    (testing "user-id and id should be equal"
+      (is (= id user-id)))
+    (testing "should add user to database"
+      (let []
+        (is (= stored-user
+               (-> user
+                   (assoc :user/id user-id)
+                   (assoc :fully.db/type :example/user)
+                   (assoc :xt/id user-id))))))))
+
+(deftest save!--new-user-without-id-test
+  (let [{:keys [repository schema-manager]} *system*
+        {:keys [conn]} repository
+        user (scm/generate schema-manager :example/user
+                           {:pipe #(mu/dissoc % :user/id)})
+        ; generate a user but without generating a :user/id since it will be generated
+        ; by save! anyways
+        [user-id tx] (repo/save! repository :example/user user)
+        _ (xtdb/await-tx conn tx)
+        stored-user (xtdb/entity (xtdb/db conn) user-id)]
     (testing "should return a generated user id"
       (is (not (nil? user-id))))
     (testing "should return a transaction"
       (is (not (nil? tx))))
     (testing "should add user to db"
-      (let [queried-user (xtdb/entity (xtdb/db conn) user-id)]
-        (is (= queried-user
+      (let []
+        (is (= stored-user
                (-> user
+                   (assoc :user/id user-id)
                    (assoc :fully.db/type :example/user)
-                   (assoc :xt/id user-id))))))
-    (testing "should update existing user in db"
-      (let [updated-user (-> (xtdb/entity (xtdb/db conn) user-id)
-                             (assoc :user/email "johndoe@mail.com"))
-            [updated-user-id tx] (repo/save! repository :example/user updated-user)
-            _ (xtdb/await-tx conn tx)
-            queried-user (xtdb/entity (xtdb/db conn) updated-user-id)]
-        (is (= user-id updated-user-id))
-        (is (= queried-user updated-user))))))
+                   (assoc :xt/id user-id))))))))
+
+(deftest save!--existing-user-test
+  (let [{:keys [repository schema-manager]} *system*
+        {:keys [conn]} repository
+        user (scm/generate schema-manager :example/user)
+        [user-id tx] (repo/save! repository :example/user user)
+        _ (xtdb/await-tx conn tx)
+        stored-user (xtdb/entity (xtdb/db conn) user-id)
+        updated-user (assoc stored-user :user/email "johndoe@mail.com")
+        [new-user-id tx] (repo/save! repository :example/user updated-user)
+        _ (xtdb/await-tx conn tx)
+        stored-updated-user (xtdb/entity (xtdb/db conn) new-user-id)]
+    (testing "new-user-id should equal user-id"
+      (is (= new-user-id user-id)))
+    (testing "stored-updated-user should equal stored-user except for updated key"
+      (is (= stored-updated-user
+             (assoc stored-user :user/email "johndoe@mail.com"))))))

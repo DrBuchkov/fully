@@ -4,7 +4,6 @@
             [fully.repository.api :as db]
             [fully.resolver.api :as resolver]
             [fully.routes.api :refer [routes]]
-            [fully.ring-handler.api :as handler]
             [fully.ring-server.api :as server]
             [fully.schema.api :as schema]))
 

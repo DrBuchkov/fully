@@ -2,7 +2,9 @@
   (:require [clojure.tools.namespace.repl :as tn]
             [clojure.tools.namespace.reload]
             [system :refer :all]
-            [fully.server.core :refer [start-app! stop-app!]]))
+            [fully.server.core :refer [start-app! stop-app!]]
+            [malli.core :as m]
+            [malli.util :as mu]))
 
 
 (defn refresh-ns
@@ -20,10 +22,19 @@
   []
   (swap! system stop-app!))
 
+(defn schema-manager [] (:schema-manager @system))
+
+(defn repository [] (::repository @system))
+
+(defn resolver [] (:resolver @system))
+
+(defn ring-server [] (:ring-server @system))
+
 (defn restart-dev!
   []
   (stop!)
   (refresh-ns)
   (start!))
 
-
+(let [schema (m/schema :example/user {:registry (:registry (schema-manager))})]
+  (m/explain schema #:user{:username "M?°6et©Ê1úCÛ", :password "Ó,%<»,*±ï\bÌÑSTåÒ<ò·µµ", :email "÷FÜ¤_BÉKÆ(ýSJeyµ¼)'Y]"}))

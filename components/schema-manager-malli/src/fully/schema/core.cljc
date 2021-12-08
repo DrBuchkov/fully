@@ -10,7 +10,7 @@
             [malli.util :as mu]))
 
 
-(defrecord SchemaManager [config generator schema registry]
+(defrecord SchemaManager [config generator domain-schema registry]
 
   component/Lifecycle
   (start [this]
@@ -35,8 +35,11 @@
         m/deref
         m/properties))
 
-  (entity-id-key [_ _]
-    :xt/id)
+  (children [_ type]
+    (-> type
+        (m/schema {:registry registry})
+        m/deref
+        m/children))
 
   (valid? [this type data]
     (scm/valid? this type data nil))
@@ -52,10 +55,11 @@
 
   (generate [_ type {:keys [pipe]
                      :or   {pipe identity}}]
-    (-> (m/schema type {:registry registry})
-        pipe
-        generator
-        gen/generate))
+    (let [schema (m/schema type {:registry registry})]
+      (-> schema
+          pipe
+          generator
+          gen/generate)))
 
   (sample [this type]
     (scm/sample this type nil))
