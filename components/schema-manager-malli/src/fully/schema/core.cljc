@@ -64,12 +64,12 @@
   (sample [this type]
     (scm/sample this type nil))
 
-  (sample [_ type {:keys [pipe sample-num]
-                   :or   {pipe identity sample-num 10}}]
+  (sample [_ type {:keys [pipe size]
+                   :or   {pipe identity size 10}}]
     (-> (m/schema type {:registry registry})
         pipe
         generator
-        (gen/sample sample-num))))
+        (gen/sample size))))
 
 (defn create-schema-manager []
   (map->SchemaManager {:config (:schema env)}))

@@ -10,6 +10,27 @@
             [potpuri.core :as pt])
   (:import (xtdb.api IXtdb)))
 
+(defn build-clauses [where]
+  (when where
+    (reduce (fn [acc [k v]]
+              (let [prop-sym (symbol (str "?" (namespace k)) (name k))]
+                (-> acc
+                    (update :in conj prop-sym)
+                    (update :where conj ['?e k prop-sym]))))
+            {:in    []
+             :where []}
+            where)))
+
+(defn build-query [{:keys [limit offset where order-by] :as opts}]
+  (let [{:keys [in where]} (build-clauses where)]
+    (cond-> '{:find  [(pull ?e [*])]
+              :in    [?type]
+              :where [[?e :fully.entity/type ?type]]}
+      limit (assoc :limit limit)
+      offset (assoc :offset offset)
+      in (update :in into in)
+      where (update :where into where))))
+
 (defrecord XtdbRepository [config schema-manager ^IXtdb conn]
 
   component/Lifecycle
@@ -47,26 +68,26 @@
             [[::xtdb/put
               (-> augmented-resource
                   (assoc :xt/id id)
-                  (assoc :fully.db/type type))]])]))
+                  (assoc :fully.entity/type type))]])]))
 
   (exists? [_ _ id]
-    (ffirst (xtdb/q (xtdb/db conn)
-                    '{:find  [resource]
-                      :in    [id]
-                      :where [[resource :xt/id id]]}
-                    id)))
+    (-> (xtdb/q (xtdb/db conn)
+                '{:find  [resource]
+                  :in    [id]
+                  :where [[resource :xt/id id]]}
+                id)
+        ffirst some?))
+
   (fetch! [_ _ id]
     (or (xtdb/entity (xtdb/db conn) id)
         (err/not-found! {:id id})))
 
-  (find! [_ type]
-    (-> (xtdb/q (xtdb/db conn)
-                '{:find  [(pull ?resource [*])]
-                  :in    [?type]
-                  :where [[?resource :fully.db/type ?type]]}
-                type)
-        seq
-        flatten))
+  (find! [this type]
+    (repo/find! this type nil))
+
+  (find! [_ type {:keys [limit offset where order-by] :as opts}]
+    (let [query (build-query opts)]
+      (flatten (seq (apply (partial xtdb/q (xtdb/db conn) query type) (vals where))))))
 
   (update! [_ type id resource]
     (when-not (scm/valid? schema-manager type resource
@@ -85,7 +106,7 @@
                      ; Make sure that :xt/id, :fully.db/type are not overridden
                      (-> updated-resource
                          (assoc :xt/id id)
-                         (assoc :fully.db/type type))]])}))
+                         (assoc :fully.entity/type type))]])}))
 
   (delete! [this type id]
     (when-not (repo/exists? this type id)

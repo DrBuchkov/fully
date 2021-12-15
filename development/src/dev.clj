@@ -35,6 +35,3 @@
   (stop!)
   (refresh-ns)
   (start!))
-
-(let [schema (m/schema :example/user {:registry (:registry (schema-manager))})]
-  (m/explain schema #:user{:username "M?°6et©Ê1úCÛ", :password "Ó,%<»,*±ï\bÌÑSTåÒ<ò·µµ", :email "÷FÜ¤_BÉKÆ(ýSJeyµ¼)'Y]"}))
