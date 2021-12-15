@@ -48,7 +48,12 @@
       (assoc this :conn nil)))
 
   repo/IRepository
-  (save! [_ type resource]
+  (save! [this type resource]
+    (let [[id tx] (repo/save-async! this type resource)]
+      (xtdb/await-tx conn tx)
+      id))
+
+  (save-async! [_ type resource]
     (let [children (scm/children schema-manager type)
           generated-children (into {}
                                    (for [[child-key child-props child-schema] children
@@ -111,7 +116,7 @@
   (delete! [this type id]
     (when-not (repo/exists? this type id)
       (err/not-found! (pt/map-of id)))
-    (xtdb/submit-tx conn [[:XTDB.tx/delete id]])))
+    (xtdb/submit-tx conn [[::xtdb/delete id]])))
 
 (defn create-repository []
   (map->XtdbRepository {:config (:repository env)}))

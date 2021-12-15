@@ -22,11 +22,11 @@
 
 (use-fixtures :each (with-system create-system))
 
-(deftest save!--new-user-with-id-test
+(deftest save-async!--new-user-with-id-test
   (let [{:keys [repository schema-manager]} *system*
         {:keys [conn]} repository
         {:keys [user/id] :as user} (scm/generate schema-manager :example/user)
-        [user-id tx] (repo/save! repository :example/user user)
+        [user-id tx] (repo/save-async! repository :example/user user)
         _ (xtdb/await-tx conn tx)
         stored-user (xtdb/entity (xtdb/db conn) user-id)]
     (testing "should return a user id"
@@ -43,14 +43,14 @@
                    (assoc :fully.entity/type :example/user)
                    (assoc :xt/id user-id))))))))
 
-(deftest save!--new-user-without-id-test
+(deftest save-async!--new-user-without-id-test
   (let [{:keys [repository schema-manager]} *system*
         {:keys [conn]} repository
         user (scm/generate schema-manager :example/user
                            {:pipe #(mu/dissoc % :user/id)})
         ; generate a user but without generating a :user/id since it will be generated
         ; by save! anyways
-        [user-id tx] (repo/save! repository :example/user user)
+        [user-id tx] (repo/save-async! repository :example/user user)
         _ (xtdb/await-tx conn tx)
         stored-user (xtdb/entity (xtdb/db conn) user-id)]
     (testing "should return a generated user id"
@@ -65,15 +65,15 @@
                    (assoc :fully.entity/type :example/user)
                    (assoc :xt/id user-id))))))))
 
-(deftest save!--existing-user-test
+(deftest save-async!--existing-user-test
   (let [{:keys [repository schema-manager]} *system*
         {:keys [conn]} repository
         user (scm/generate schema-manager :example/user)
-        [user-id tx] (repo/save! repository :example/user user)
+        [user-id tx] (repo/save-async! repository :example/user user)
         _ (xtdb/await-tx conn tx)
         stored-user (xtdb/entity (xtdb/db conn) user-id)
         updated-user (assoc stored-user :user/email "johndoe@mail.com")
-        [new-user-id tx] (repo/save! repository :example/user updated-user)
+        [new-user-id tx] (repo/save-async! repository :example/user updated-user)
         _ (xtdb/await-tx conn tx)
         stored-updated-user (xtdb/entity (xtdb/db conn) new-user-id)]
     (testing "new-user-id should equal user-id"
@@ -82,26 +82,26 @@
       (is (= stored-updated-user
              (assoc stored-user :user/email "johndoe@mail.com"))))))
 
-(deftest save!--invalid-new-user-test
+(deftest save-async!--invalid-new-user-test
   (let [{:keys [repository]} *system*
         user {:invalid :user}]
     (testing "should throw ExceptionInfo"
-      (is (= (catch-thrown-info (repo/save! repository :example/user user))
+      (is (= (catch-thrown-info (repo/save-async! repository :example/user user))
              {:msg  "Data do not conform with schema"
               :data {:fully.http.error/type :fully.http.error/validation-error
                      :fully.http.error/data {:type :example/user
                                              :data user}}})))))
 
-(deftest save!--invalid-existing-user-test
+(deftest save-async!--invalid-existing-user-test
   (let [{:keys [repository schema-manager]} *system*
         {:keys [conn]} repository
         user (scm/generate schema-manager :example/user)
-        [user-id tx] (repo/save! repository :example/user user)
+        [user-id tx] (repo/save-async! repository :example/user user)
         _ (xtdb/await-tx conn tx)
         stored-user (xtdb/entity (xtdb/db conn) user-id)
         updated-user (assoc stored-user :user/email 1234)]
     (testing "should throw ExceptionInfo"
-      (is (= (catch-thrown-info (repo/save! repository :example/user updated-user))
+      (is (= (catch-thrown-info (repo/save-async! repository :example/user updated-user))
              {:msg  "Data do not conform with schema"
               :data {:fully.http.error/type :fully.http.error/validation-error
                      :fully.http.error/data {:type :example/user
@@ -109,38 +109,30 @@
 
 (deftest exists?--when-user-exists-in-db-test
   (let [{:keys [repository schema-manager]} *system*
-        {:keys [conn]} repository
         user (scm/generate schema-manager :example/user)
-        [user-id tx] (repo/save! repository :example/user user)
-        _ (xtdb/await-tx conn tx)]
+        user-id (repo/save! repository :example/user user)]
     (testing "should return true when user does exist in DB"
       (is (= true (repo/exists? repository :example/user user-id))))))
 
 (deftest exists?--when-user-doesnt-exist-in-db-test
   (let [{:keys [repository schema-manager]} *system*
-        {:keys [conn]} repository
         user (scm/generate schema-manager :example/user)
-        [_ tx] (repo/save! repository :example/user user)
-        _ (xtdb/await-tx conn tx)]
+        _ (repo/save! repository :example/user user)]
     (testing "should return false when user does not exist in DB"
       (is (= false (repo/exists? repository :example/user (UUID/randomUUID)))))))
 
 (deftest fetch!--when-user-exists-in-db-test
   (let [{:keys [repository schema-manager]} *system*
-        {:keys [conn]} repository
         user (scm/generate schema-manager :example/user)
-        [user-id tx] (repo/save! repository :example/user user)
-        _ (xtdb/await-tx conn tx)]
+        user-id (repo/save! repository :example/user user)]
     (testing "should return user along with appended values"
       (is (= (repo/fetch! repository :example/user user-id)
              (assoc user :xt/id user-id :user/id user-id :fully.entity/type :example/user))))))
 
 (deftest fetch!--when-user-doesnt-exist-in-db-test
   (let [{:keys [repository schema-manager]} *system*
-        {:keys [conn]} repository
         user (scm/generate schema-manager :example/user)
-        [_ tx] (repo/save! repository :example/user user)
-        _ (xtdb/await-tx conn tx)
+        _ (repo/save! repository :example/user user)
         random-uuid (UUID/randomUUID)]
     (testing "should return user along with appended values"
       (is (= (catch-thrown-info (repo/fetch! repository :example/user random-uuid))
@@ -182,12 +174,8 @@
 
 (deftest find!--without-parameters-test
   (let [{:keys [repository schema-manager]} *system*
-        {:keys [conn]} repository
         users (scm/sample schema-manager :example/user)
-        user-ids (doall (for [user users
-                              :let [[id tx] (repo/save! repository :example/user user)
-                                    _ (xtdb/await-tx conn tx)]]
-                          id))]
+        user-ids (doall (for [user users] (repo/save! repository :example/user user)))]
     (testing "should return users along with their appended values"
       (is (= (set (repo/find! repository :example/user))
              (set (map (fn [user user-id]
@@ -198,22 +186,17 @@
 
 (deftest find!--with-parameters-test
   (let [{:keys [repository schema-manager]} *system*
-        {:keys [conn]} repository
         users (scm/sample schema-manager :example/user {:size 100})
-        user-ids (doall (for [user users
-                              :let [[id tx] (repo/save! repository :example/user user)
-                                    _ (xtdb/await-tx conn tx)]]
-                          id))]
-    (testing "should return users along with their appended values"
-      (let [limit 5
-            offset 3
-            where {:user/active?  true
-                   :user/premium? false}
-            result (repo/find! repository :example/user (pt/map-of limit offset where))]
-        (testing "result's size should be equal to limit"
-          (= limit (count result)))
-        (testing "all users in result should be active and not premium"
-          (and (every? :user/active? result)
-               (not-any? :user/premium? result)))))))
+        _ (doseq [user users] (repo/save! repository :example/user user))]
+    (let [limit 5
+          offset 3
+          where {:user/active?  true
+                 :user/premium? false}
+          result (repo/find! repository :example/user (pt/map-of limit offset where))]
+      (testing "result's size should be equal to limit"
+        (= limit (count result)))
+      (testing "all users in result should be active and not premium"
+        (and (every? :user/active? result)
+             (not-any? :user/premium? result))))))
 
 
