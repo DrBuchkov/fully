@@ -12,7 +12,6 @@
       (= (name k) "id")))
 
 
-; TODO: this should use fully.schema.api
 (def entity-schema? (fn [schema]
                       (-> schema
                           m/schema
@@ -33,7 +32,7 @@
           ::pco/output  schema-keys
           ; ex. ::pco/output :example/user => [:user/id :user/username :user/password :user/email]
           ::pco/resolve (fn [_ input]
-                          (repo/fetch! db schema-name (get input id-key)))}))
+                          (repo/fetch db schema-name (get input id-key)))}))
 
      ; fetch all resolver
      (let [op-name (str "all-" (i/plural unqualified-schema-name))
@@ -44,7 +43,7 @@
           ::pco/output  [{outkey [id-key]}]
           ; ex ::pco/output :example/user => {:example/all-users [:user/id :user/username :user/password :user/email]}
           ::pco/resolve (fn [_ _]
-                          {outkey (repo/find! db schema-name)})}))]))
+                          {outkey (repo/find db schema-name)})}))]))
 
 (defn schemas->resolvers [db schemas]
   (let [schema->resolvers (partial schema->resolvers db)]

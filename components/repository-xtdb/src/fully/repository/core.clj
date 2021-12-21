@@ -6,13 +6,13 @@
             [fully.schema-manager-protocol.api :as scm]
             [com.stuartsierra.component :as component]
             [xtdb.api :as xtdb]
-            [malli.util :as mu]
+            [fully.schema-utils.api :as su]
             [potpuri.core :as pt])
   (:import (xtdb.api IXtdb)))
 
 (defn build-clauses [where]
   (when where
-    (reduce (fn [acc [k v]]
+    (reduce (fn [acc [k _]]
               (let [prop-sym (symbol (str "?" (namespace k)) (name k))]
                 (-> acc
                     (update :in conj prop-sym)
@@ -21,104 +21,95 @@
              :where []}
             where)))
 
-(defn build-query [{:keys [limit offset where order-by] :as opts}]
+(defn build-query [{:keys [limit offset where projection order-by] :as opts}]
   (let [{:keys [in where]} (build-clauses where)]
-    (cond-> '{:find  [(pull ?e [*])]
-              :in    [?type]
-              :where [[?e :fully.entity/type ?type]]}
+    (cond-> (assoc '{:in    [?type]
+                     :where [[?e :fully.entity/type ?type]]}
+              :find [(list 'pull '?e (or projection '[*]))])
+
       limit (assoc :limit limit)
       offset (assoc :offset offset)
       in (update :in into in)
       where (update :where into where))))
 
-(defrecord XtdbRepository [config schema-manager ^IXtdb conn]
+(defrecord XtdbRepository [config schema-manager transactions ^IXtdb node]
 
   component/Lifecycle
   (start [this]
     (log/info "Starting connection with XTDB database")
-    (let [conn (xtdb/start-node config)]
+    (let [node (xtdb/start-node config)]
       (log/info "Connection with XTDB database started")
-      (assoc this :conn conn)))
+      (assoc this :node node
+                  :transactions [])))
 
   (stop [this]
-    (when conn
+    (when node
       (log/info "Stopping XTDB Database connection")
-      (.close conn)
+      (.close node)
       (log/info "XTDB Database connection stopped")
-      (assoc this :conn nil)))
+      (assoc this :node nil
+                  :config nil
+                  :schema-manager nil
+                  :transactions nil)))
 
   repo/IRepository
-  (save! [this type resource]
-    (let [[id tx] (repo/save-async! this type resource)]
-      (xtdb/await-tx conn tx)
-      id))
+  (exists? [_ type id]
+    (-> (xtdb/q (xtdb/db node)
+                '{:find  [?e]
+                  :in    [?id ?type]
+                  :where [[?e :xt/id ?id]
+                          [?e :fully.entity/type ?type]]}
+                id type)
+        ffirst
+        some?))
 
-  (save-async! [_ type resource]
-    (let [children (scm/children schema-manager type)
-          generated-children (into {}
-                                   (for [[child-key child-props child-schema] children
-                                         :when (and (:fully.entity.generate/generated child-props)
-                                                    (not (get resource child-key)))]
-                                     [child-key (scm/generate schema-manager child-schema)]))
-          augmented-resource (merge resource generated-children)
-          ; generate entities props that are nil and can be automatically generated.
-          _ (when-not (scm/valid? schema-manager type augmented-resource)
-              (err/validation-error! {:type type
-                                      :data resource}))
-          ; Check for valid resource after nil children are generated
-          {:keys [fully.entity/id-key]} (scm/properties schema-manager type)
-          id (get augmented-resource id-key)]
-      [id (xtdb/submit-tx
-            conn
-            [[::xtdb/put
-              (-> augmented-resource
-                  (assoc :xt/id id)
-                  (assoc :fully.entity/type type))]])]))
+  (fetch [this type id]
+    (repo/fetch this type id nil))
 
-  (exists? [_ _ id]
-    (-> (xtdb/q (xtdb/db conn)
-                '{:find  [resource]
-                  :in    [id]
-                  :where [[resource :xt/id id]]}
-                id)
-        ffirst some?))
+  (fetch [_ type id {:keys [projection]}]
 
-  (fetch! [_ _ id]
-    (or (xtdb/entity (xtdb/db conn) id)
-        (err/not-found! {:id id})))
+    (ffirst (xtdb/q (xtdb/db node)
+                    (assoc '{:in    [?id ?type]
+                             :where [[?e :xt/id ?id]
+                                     [?e :fully.entity/type ?type]]}
+                      :find [(list 'pull '?e (or projection '[*]))])
+                    id type)))
 
-  (find! [this type]
-    (repo/find! this type nil))
+  (find [this type]
+    (repo/find this type nil))
 
-  (find! [_ type {:keys [limit offset where order-by] :as opts}]
+  (find [_ type {:keys [where] :as opts}]
     (let [query (build-query opts)]
-      (flatten (seq (apply (partial xtdb/q (xtdb/db conn) query type) (vals where))))))
+      (-> (partial xtdb/q (xtdb/db node) query type)
+          (apply (vals where))
+          (seq)
+          (flatten))))
 
-  (update! [_ type id resource]
-    (when-not (scm/valid? schema-manager type resource
-                          {:pipe mu/optional-keys})
-      (err/validation-error! (pt/map-of type resource)))
+  (save [this type entity]
+    (when-not (scm/valid? schema-manager type entity)
+      (err/validation-error! {:type type
+                              :data entity}))
+    (update this :transactions conj [::xtdb/put (assoc entity :fully.entity/type type)]))
 
-    (let [current-resource (xtdb/entity (xtdb/db conn) id)
-          _ (when-not current-resource
-              (err/not-found! (pt/map-of id)))
-          updated-resource (merge current-resource resource)]
-      {:id       id
-       :resource updated-resource
-       :tx       (xtdb/submit-tx
-                   conn
-                   [[::xtdb/put
-                     ; Make sure that :xt/id, :fully.db/type are not overridden
-                     (-> updated-resource
-                         (assoc :xt/id id)
-                         (assoc :fully.entity/type type))]])}))
+  (update [this type id entity-data]
+    (when-not (scm/valid? schema-manager type entity-data
+                          {:pipe su/optional-keys})
+      (err/validation-error! (pt/map-of type entity-data)))
 
-  (delete! [this type id]
-    (when-not (repo/exists? this type id)
-      (err/not-found! (pt/map-of id)))
-    (xtdb/submit-tx conn [[::xtdb/delete id]])))
+    (let [current-resource (repo/fetch this type id)
+          updated-resource (merge current-resource entity-data)]
+      (update this :transactions conj [::xtdb/put updated-resource])))
 
-(defn create-repository []
-  (map->XtdbRepository {:config (:repository env)}))
+  (delete [this type id]
+    (update this :transactions conj [::xtdb/delete id]))
 
+  (flush! [this]
+    (xtdb/await-tx node (xtdb/submit-tx node transactions))
+    (assoc this :transactions []))
 
+  (flush-async! [this]
+    (xtdb/submit-tx node transactions)
+    (assoc this :transactions [])))
+
+(defn create-repository [config]
+  (map->XtdbRepository {:config config}))

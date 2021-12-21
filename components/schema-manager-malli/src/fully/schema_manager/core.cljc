@@ -1,7 +1,5 @@
-(ns fully.schema.core
-  (:require [clojure.java.io :as io]
-            [com.stuartsierra.component :as component]
-            [aero.core :as aero]
+(ns fully.schema-manager.core
+  (:require [com.stuartsierra.component :as component]
             [malli.core :as m]
             [malli.generator :as mg]
             [fully.schema-manager-protocol.api :as scm]
@@ -14,17 +12,14 @@
 
   component/Lifecycle
   (start [this]
-    (let [schema (->> (:path config)
-                      io/resource
-                      aero/read-config)]
-      (-> this
-          (assoc :schema schema)
-          (assoc :registry (merge (m/default-schemas) (mu/schemas) schema))
-          (assoc :generator (memoize mg/generator)))))
+    (-> this
+        (assoc :domain-schema domain-schema)
+        (assoc :registry (merge (m/default-schemas) (mu/schemas) domain-schema))
+        (assoc :generator (memoize mg/generator))))
 
   (stop [this]
     (-> this
-        (assoc :schema nil)
+        (assoc :domain-schema nil)
         (assoc :registry nil)
         (assoc :generator nil)))
 
@@ -71,5 +66,6 @@
         generator
         (gen/sample size))))
 
-(defn create-schema-manager []
-  (map->SchemaManager {:config (:schema env)}))
+(defn create-schema-manager [schema]
+  (map->SchemaManager {:config        (:schema env)
+                       :domain-schema schema}))

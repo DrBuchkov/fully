@@ -2,9 +2,7 @@
   (:require [clojure.tools.namespace.repl :as tn]
             [clojure.tools.namespace.reload]
             [system :refer :all]
-            [fully.server.core :refer [start-app! stop-app!]]
-            [malli.core :as m]
-            [malli.util :as mu]))
+            [fully.server.core :refer [start-app! stop-app!]]))
 
 
 (defn refresh-ns
@@ -24,7 +22,7 @@
 
 (defn schema-manager [] (:schema-manager @system))
 
-(defn repository [] (::repository @system))
+(defn repository [] (:repository @system))
 
 (defn resolver [] (:resolver @system))
 
