@@ -4,10 +4,11 @@
             [fully.test-helper.schema :as test-schema]
             [fully.repository.core :as sut]
             [fully.config.api :refer [env]]
-            [fully.entity-utils.api :as eu]
+            [fully.entity-manager-protocol.api :as em]
+            [fully.entity-manager.api :refer [create-entity-manager]]
+            [fully.schema-manager-protocol.api :as scm]
             [fully.schema-manager.api :refer [create-schema-manager]]
             [fully.repository-protocol.api :as repo]
-            [fully.schema-manager-protocol.api :as scm]
             [com.stuartsierra.component :as component]
             [potpuri.core :as pt])
   (:import (java.util UUID)))
@@ -18,16 +19,19 @@
   (let [{:keys [repository]} env]
     (component/system-map
       :schema-manager (create-schema-manager test-schema/schema)
+      :entity-manager (component/using
+                        (create-entity-manager)
+                        [:schema-manager])
       :repository (component/using
                     (sut/create-repository repository)
-                    [:schema-manager]))))
+                    [:schema-manager :entity-manager]))))
 
 (use-fixtures :each (with-system create-system))
 
 (deftest exists?--when-user-exists-in-db-test
-  (let [{:keys [repository schema-manager]} *system*
-        {:keys [user/id] :as user} (eu/gen-id schema-manager :example/user
-                                              (scm/generate schema-manager :example/user))
+  (let [{:keys [repository schema-manager entity-manager]} *system*
+        {:keys [user/id] :as user} (em/prepare entity-manager :example/user
+                                               (scm/generate schema-manager :example/user))
         _ (-> repository
               (repo/save :example/user user)
               (repo/flush!))]
@@ -35,9 +39,9 @@
       (is (= true (repo/exists? repository :example/user id))))))
 
 (deftest exists?--when-user-doesnt-exist-in-db-test
-  (let [{:keys [repository schema-manager]} *system*
-        {:keys [user/id] :as user} (eu/gen-id schema-manager :example/user
-                                              (scm/generate schema-manager :example/user))
+  (let [{:keys [repository schema-manager entity-manager]} *system*
+        {:keys [user/id] :as user} (em/prepare entity-manager :example/user
+                                               (scm/generate schema-manager :example/user))
         _ (-> repository
               (repo/save :example/user user)
               (repo/flush!))]
@@ -45,9 +49,9 @@
       (is (= false (repo/exists? repository :example/user (UUID/randomUUID)))))))
 
 (deftest fetch--when-user-exists-in-db-test
-  (let [{:keys [repository schema-manager]} *system*
-        {:keys [user/id] :as user} (eu/gen-id schema-manager :example/user
-                                              (scm/generate schema-manager :example/user))
+  (let [{:keys [repository schema-manager entity-manager]} *system*
+        {:keys [user/id] :as user} (em/prepare entity-manager :example/user
+                                               (scm/generate schema-manager :example/user))
         _ (-> repository
               (repo/save :example/user user)
               (repo/flush!))]
@@ -56,9 +60,9 @@
              (assoc user :fully.entity/type :example/user))))))
 
 (deftest fetch--when-user-doesnt-exist-in-db-test
-  (let [{:keys [repository schema-manager]} *system*
-        {:keys [user/id] :as user} (eu/gen-id schema-manager :example/user
-                                              (scm/generate schema-manager :example/user))
+  (let [{:keys [repository schema-manager entity-manager]} *system*
+        {:keys [user/id] :as user} (em/prepare entity-manager :example/user
+                                               (scm/generate schema-manager :example/user))
         _ (-> repository
               (repo/save :example/user user)
               (repo/flush!))
@@ -99,16 +103,16 @@
 
 
 (deftest find--without-parameters-test
-  (let [{:keys [repository schema-manager]} *system*
-        users (map (partial eu/gen-id schema-manager :example/user) (scm/sample schema-manager :example/user))]
+  (let [{:keys [repository schema-manager entity-manager]} *system*
+        users (map (partial em/prepare entity-manager :example/user) (scm/sample schema-manager :example/user))]
     (repo/flush! (reduce (fn [acc user] (repo/save acc :example/user user)) repository users))
     (testing "should return users along with their appended values"
       (is (= (set (repo/find repository :example/user))
              (set (map #(assoc % :fully.entity/type :example/user) users)))))))
 
 (deftest find--with-parameters-test
-  (let [{:keys [repository schema-manager]} *system*
-        users (map (partial eu/gen-id schema-manager :example/user) (scm/sample schema-manager :example/user))]
+  (let [{:keys [repository schema-manager entity-manager]} *system*
+        users (map (partial em/prepare entity-manager :example/user) (scm/sample schema-manager :example/user))]
     (repo/flush! (reduce (fn [acc user] (repo/save acc :example/user user)) repository users))
     (let [limit 5
           offset 3
@@ -122,9 +126,9 @@
              (not-any? :user/premium? result))))))
 
 (deftest save--new-user-test
-  (let [{:keys [repository schema-manager]} *system*
-        {:keys [user/id] :as user} (eu/gen-id schema-manager :example/user
-                                              (scm/generate schema-manager :example/user))
+  (let [{:keys [repository schema-manager entity-manager]} *system*
+        {:keys [user/id] :as user} (em/prepare entity-manager :example/user
+                                               (scm/generate schema-manager :example/user))
         repository (repo/save repository :example/user user)]
     (testing "should add the proper transaction"
       (is (= (:transactions repository)
@@ -136,9 +140,9 @@
                (assoc user :fully.entity/type :example/user)))))))
 
 (deftest save--existing-user-test
-  (let [{:keys [repository schema-manager]} *system*
-        {:keys [user/id] :as user} (eu/gen-id schema-manager :example/user
-                                              (scm/generate schema-manager :example/user))
+  (let [{:keys [repository schema-manager entity-manager]} *system*
+        {:keys [user/id] :as user} (em/prepare entity-manager :example/user
+                                               (scm/generate schema-manager :example/user))
         _ (-> repository
               (repo/save :example/user user)
               (repo/flush!))
@@ -163,9 +167,9 @@
                                              :data user}}})))))
 
 (deftest save--invalid-existing-user-test
-  (let [{:keys [repository schema-manager]} *system*
-        {:keys [user/id] :as user} (eu/gen-id schema-manager :example/user
-                                              (scm/generate schema-manager :example/user))
+  (let [{:keys [repository schema-manager entity-manager]} *system*
+        {:keys [user/id] :as user} (em/prepare entity-manager :example/user
+                                               (scm/generate schema-manager :example/user))
         _ (-> repository
               (repo/save :example/user user)
               (repo/flush!))
@@ -181,11 +185,11 @@
                                              :data updated-user}}})))))
 
 (deftest update--when-user-exists-in-db-test
-  (let [{:keys [repository schema-manager]} *system*
+  (let [{:keys [repository schema-manager entity-manager]} *system*
 
         {:keys [user/id] :as user}
-        (eu/gen-id schema-manager :example/user
-                   (scm/generate schema-manager :example/user))
+        (em/prepare entity-manager :example/user
+                    (scm/generate schema-manager :example/user))
 
         _ (-> repository
               (repo/save :example/user user)
@@ -204,11 +208,11 @@
                updated-stored-user))))))
 
 (deftest delete-test
-  (let [{:keys [repository schema-manager]} *system*
+  (let [{:keys [repository schema-manager entity-manager]} *system*
 
         {:keys [user/id] :as user}
-        (eu/gen-id schema-manager :example/user
-                   (scm/generate schema-manager :example/user))
+        (em/prepare entity-manager :example/user
+                    (scm/generate schema-manager :example/user))
         _ (-> repository
               (repo/save :example/user user)
               (repo/flush!))

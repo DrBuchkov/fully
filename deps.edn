@@ -4,7 +4,8 @@
                                 "bases/server/src"
                                 "components/system/src"
                                 "components/logger-timbre/src"
-                                "components/entity-utils-xtdb/src"
+                                "components/entity-manager-protocol/src"
+                                "components/entity-manager-xtdb/src"
                                 "components/repository-protocol/src"
                                 "components/repository-xtdb/src"
                                 "components/resolver-protocol/src"
@@ -67,7 +68,7 @@
            :test {:extra-paths ["components/test-helper/src"
                                 "components/repository-xtdb/test"
                                 "components/schema-manager-malli/test"
-                                "components/entity-utils-xtdb/test"]}
+                                "components/entity-manager-xtdb/test"]}
 
            :poly {:main-opts  ["-m" "polylith.clj.core.poly-cli.core"]
                   :extra-deps {polyfy/polylith

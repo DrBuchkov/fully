@@ -32,7 +32,8 @@
       in (update :in into in)
       where (update :where into where))))
 
-(defrecord XtdbRepository [config schema-manager transactions ^IXtdb node]
+(defrecord XtdbRepository
+  [config schema-manager entity-manager transactions ^IXtdb node]
 
   component/Lifecycle
   (start [this]
@@ -50,6 +51,7 @@
       (assoc this :node nil
                   :config nil
                   :schema-manager nil
+                  :entity-manager nil
                   :transactions nil)))
 
   repo/IRepository

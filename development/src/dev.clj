@@ -22,6 +22,8 @@
 
 (defn schema-manager [] (:schema-manager @system))
 
+(defn entity-manager [] (:entity-manager @system))
+
 (defn repository [] (:repository @system))
 
 (defn resolver [] (:resolver @system))
