@@ -1,26 +1,25 @@
 {:aliases {:dev  {:extra-paths ["development/src"
                                 "development/resources"
-
-                                "bases/server/src"
-                                "components/system/src"
-                                "components/logger-timbre/src"
-                                "components/entity-manager-protocol/src"
-                                "components/entity-manager-xtdb/src"
-                                "components/repository-protocol/src"
-                                "components/repository-xtdb/src"
-                                "components/resolver-protocol/src"
-                                "components/resolver-pathom/src"
-                                "components/resolver-gen/src"
-                                "components/ring-server-jetty/src"
-                                "components/ring-handler-reitit/src"
-                                "components/routes-default/src"
-                                "components/config-aero/src"
-                                "components/middleware/src"
-                                "components/errors/src"
-                                "components/schema/src"
-                                "components/schema-utils-malli/src"
-                                "components/schema-manager-protocol/src"
-                                "components/schema-manager-malli/src"]
+                                "bases/clj/server/src"
+                                "components/clj/system/src"
+                                "components/clj/logger-timbre/src"
+                                "components/clj/entity-manager-protocol/src"
+                                "components/clj/entity-manager-xtdb/src"
+                                "components/clj/repository-protocol/src"
+                                "components/clj/repository-xtdb/src"
+                                "components/clj/resolver-protocol/src"
+                                "components/clj/resolver-pathom/src"
+                                "components/clj/resolver-gen/src"
+                                "components/clj/ring-server-jetty/src"
+                                "components/clj/ring-handler-reitit/src"
+                                "components/clj/routes-default/src"
+                                "components/clj/middleware/src"
+                                "components/clj/errors/src"
+                                "components/cljc/config-aero/src"
+                                "components/cljc/schema/src"
+                                "components/cljc/schema-utils-malli/src"
+                                "components/cljc/schema-manager-protocol/src"
+                                "components/cljc/schema-manager-malli/src"]
                   :extra-deps  {org.clojure/clojure          {:mvn/version "1.10.1"}
                                 org.clojure/tools.logging    {:mvn/version "1.1.0"}
                                 org.clojure/tools.deps.alpha {:mvn/version "0.8.695"}
@@ -65,10 +64,10 @@
                   :main-opts   ["-e" "(require,'hashp.core)"
                                 "-m" "nrepl.cmdline"]}
 
-           :test {:extra-paths ["components/test-helper/src"
-                                "components/repository-xtdb/test"
-                                "components/schema-manager-malli/test"
-                                "components/entity-manager-xtdb/test"]}
+           :test {:extra-paths ["components/clj/repository-xtdb/test"
+                                "components/clj/entity-manager-xtdb/test"
+                                "components/cljc/test-helper/src"
+                                "components/cljc/schema-manager-malli/test"]}
 
            :poly {:main-opts  ["-m" "polylith.clj.core.poly-cli.core"]
                   :extra-deps {polyfy/polylith

@@ -6,5 +6,20 @@
                         :name     "git"}
  :tag-patterns         {:release "v[0-9]*"
                         :stable  "stable-*"}
- :projects             {"development" {:alias "dev"}}}
+ :projects             {"development" {:alias "dev"}}
+ :platforms            {:default :clj
+                        :clj     {:bases-path      "bases/clj"
+                                  :components-path "components/clj"
+                                  :projects-path   "projects/clj"
+                                  :uses-platforms  [:cljc]
+                                  :file-extension  "clj"}
+                        :cljs    {:bases-path      "bases/cljs"
+                                  :components-path "components/cljs"
+                                  :projects-path   "projects/cljs"
+                                  :uses-platforms  [:cljc]
+                                  :file-extension  "cljs"}
+                        :cljc    {:bases-path      "bases/cljc"
+                                  :components-path "components/cljc"
+                                  :projects-path   "projects/cljc"
+                                  :file-extension  "cljc"}}}
 
