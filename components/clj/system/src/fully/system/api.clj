@@ -1,4 +1,8 @@
 (ns fully.system.api
   (:require [fully.system.core :as core]))
 
-(defn create-system [] (core/create-system))
+(def system core/system)
+
+(defn start-system! [] (core/start-system!))
+
+(defn stop-system! [] (core/stop-system!))

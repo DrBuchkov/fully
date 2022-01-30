@@ -1,0 +1,8 @@
+;; shadow-cljs configuration
+{:deps   {}
+ :builds {:storybook {:target     :npm-module
+                      :compiler-options {:output-feature-set :es-next
+                                         :source-map true}
+                      :entries [fully.storybook.main]
+                      :devtools {:enabled false}
+                      :output-dir "public/js/stories"}}}

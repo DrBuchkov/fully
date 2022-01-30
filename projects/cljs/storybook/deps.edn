@@ -1,0 +1,22 @@
+{:deps    {org.clojure/clojure        {:mvn/version "1.10.3"}
+           org.clojure/clojurescript  {:mvn/version "1.11.4"}
+           thheller/shadow-cljs       {:mvn/version "2.16.12"}
+
+           reagent/reagent            {:mvn/version "1.1.0"}
+           metosin/potpuri            {:mvn/version "0.5.3"}
+           metosin/malli              {:mvn/version "0.6.1"}
+           org.flatland/ordered       {:mvn/version "1.15.10"}
+
+           binaryage/devtools         {:mvn/version "1.0.4"}
+           day8.re-frame/re-frame-10x {:mvn/version "1.1.10"}
+           org.clojars.tggreene/hashp {:mvn/version "0.3.0"}
+           philoskim/debux            {:mvn/version "0.7.8"}
+
+           ;chakra-ui-text/chakra-ui-text     {:local/root "../components/cljs/chakra-ui-text/src"}
+           ;chakra-ui-button/chakra-ui-button {:local/root "../components/cljs/chakra-ui-button/src"}
+           }
+ :paths   ["src"]
+ :aliases {:test {:extra-paths []
+                  :extra-deps  {}}
+
+           :chakra {:extra-paths ["../../../components/cljs/chakra-ui-components/src"]}}}

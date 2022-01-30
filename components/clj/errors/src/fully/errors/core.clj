@@ -17,14 +17,13 @@
 
       (catch ExceptionInfo e
         (let [exception-data (ex-data e)]
+          (log/error e)
           (case (:fully.http.error/type exception-data)
             :fully.http.error/not-found (not-found exception-data)
             :fully.http.error/validation-error (bad-request exception-data)
             :fully.http.error/unauthorized (unauthorized exception-data)
             :fully.http.error/forbidden (forbidden exception-data)
-            (do
-              (log/error e)
-              (internal-server-error "Oops, something went wrong")))))
+            (internal-server-error "Oops, something went wrong"))))
 
       (catch Exception e
         (log/error e)

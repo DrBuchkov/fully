@@ -1,76 +1,93 @@
-{:aliases {:dev  {:extra-paths ["development/src"
-                                "development/resources"
-                                "bases/clj/server/src"
-                                "components/clj/system/src"
-                                "components/clj/logger-timbre/src"
-                                "components/clj/entity-manager-protocol/src"
-                                "components/clj/entity-manager-xtdb/src"
-                                "components/clj/repository-protocol/src"
-                                "components/clj/repository-xtdb/src"
-                                "components/clj/resolver-protocol/src"
-                                "components/clj/resolver-pathom/src"
-                                "components/clj/resolver-gen/src"
-                                "components/clj/ring-server-jetty/src"
-                                "components/clj/ring-handler-reitit/src"
-                                "components/clj/routes-default/src"
-                                "components/clj/middleware/src"
-                                "components/clj/errors/src"
-                                "components/cljc/config-aero/src"
-                                "components/cljc/schema/src"
-                                "components/cljc/schema-utils-malli/src"
-                                "components/cljc/schema-manager-protocol/src"
-                                "components/cljc/schema-manager-malli/src"]
-                  :extra-deps  {org.clojure/clojure          {:mvn/version "1.10.1"}
-                                org.clojure/tools.logging    {:mvn/version "1.1.0"}
-                                org.clojure/tools.deps.alpha {:mvn/version "0.8.695"}
-                                org.clojure/tools.namespace  {:mvn/version "1.0.0"}
-                                nrepl/nrepl                  {:mvn/version "0.8.3"}
+{:aliases {:dev        {:extra-paths ["development/src"
+                                      "development/resources"
 
-                                hashp/hashp                  {:mvn/version "0.2.1"}
+                                      ; clj
+                                      "bases/clj/server/src"
+                                      "components/clj/system/src"
+                                      "components/clj/entity-manager-protocol/src"
+                                      "components/clj/entity-manager-xtdb/src"
+                                      "components/clj/repository-protocol/src"
+                                      "components/clj/repository-xtdb/src"
+                                      ;"components/clj/resolver-gen/src"
+                                      "components/clj/ring-server-jetty/src"
+                                      "components/clj/ring-handler-reitit/src"
+                                      "components/clj/routes-default/src"
+                                      "components/clj/middleware/src"
+                                      "components/clj/errors/src"
 
-                                aero/aero                    {:mvn/version "1.1.6"}
-                                com.fulcrologic/fulcro       {:mvn/version "3.5.0-RC3"}
-                                com.stuartsierra/component   {:mvn/version "1.0.0"}
-                                com.taoensso/timbre          {:mvn/version "5.1.2"}
-                                org.slf4j/slf4j-nop          {:mvn/version "1.7.32"}
+                                      ; cljc
+                                      "components/cljc/config-aero/src"
+                                      "components/cljc/logger-timbre/src"
+                                      "components/cljc/resolver-protocol/src"
+                                      "components/cljc/resolver-pathom/src"
+                                      "components/cljc/schema/src"
+                                      "components/cljc/schema-utils-malli/src"
+                                      "components/cljc/schema-manager-protocol/src"
+                                      "components/cljc/schema-manager-malli/src"
+                                      ; cljs
+                                      "components/cljs/chakra-ui-components/src"
+                                      ]
+                        :extra-deps  {org.clojure/clojure          {:mvn/version "1.10.1"}
+                                      org.clojure/tools.logging    {:mvn/version "1.1.0"}
+                                      org.clojure/tools.deps.alpha {:mvn/version "0.8.695"}
+                                      org.clojure/tools.namespace  {:mvn/version "1.0.0"}
+                                      nrepl/nrepl                  {:mvn/version "0.8.3"}
 
-                                com.wsscode/pathom3          {:mvn/version "2021.07.10-alpha"}
+                                      hashp/hashp                  {:mvn/version "0.2.1"}
 
-                                inflections/inflections      {:mvn/version "0.13.2"}
-                                integrant/integrant          {:mvn/version "0.8.0"}
-                                metosin/potpuri              {:mvn/version "0.5.3"}
-                                metosin/reitit               {:mvn/version "0.5.12"}
-                                metosin/ring-http-response   {:mvn/version "0.9.2"}
-                                ring/ring                    {:mvn/version "1.9.0"}
-                                ring/ring-defaults           {:mvn/version "0.3.3"}
-                                ring-cors/ring-cors          {:mvn/version "0.1.13"}
-                                com.xtdb/xtdb-core           {:mvn/version "1.20.0"}
+                                      aero/aero                    {:mvn/version "1.1.6"}
+                                      com.fulcrologic/fulcro       {:mvn/version "3.5.0-RC3"}
+                                      com.stuartsierra/component   {:mvn/version "1.0.0"}
+                                      com.taoensso/timbre          {:mvn/version "5.1.2"}
+                                      org.slf4j/slf4j-nop          {:mvn/version "1.7.32"}
+
+                                      com.wsscode/pathom3          {:mvn/version "2021.07.10-alpha"}
+
+                                      inflections/inflections      {:mvn/version "0.13.2"}
+                                      integrant/integrant          {:mvn/version "0.8.0"}
+                                      org.flatland/ordered         {:mvn/version "1.15.10"}
+                                      metosin/potpuri              {:mvn/version "0.5.3"}
+                                      metosin/malli                {:mvn/version "0.6.1"}
+                                      metosin/reitit               {:mvn/version "0.5.12"}
+                                      metosin/ring-http-response   {:mvn/version "0.9.2"}
+                                      ring/ring                    {:mvn/version "1.9.0"}
+                                      ring/ring-defaults           {:mvn/version "0.3.3"}
+                                      ring-cors/ring-cors          {:mvn/version "0.1.13"}
+                                      com.xtdb/xtdb-core           {:mvn/version "1.20.0"}
+
+                                      ; CLJS deps
+                                      org.clojure/clojurescript    {:mvn/version "1.11.4"}
+                                      binaryage/devtools           {:mvn/version "1.0.4"}
+                                      thheller/shadow-cljs         {:mvn/version "2.16.12"}
+                                      reagent/reagent              {:mvn/version "1.0.0"}
 
 
-                                ;fully/config                 {:local/root "components/config-aero"}
-                                ;fully/errors                 {:local/root "components/errors"}
-                                ;fully/logger                 {:local/root "components/logger-timbre"}
-                                ;fully/middleware             {:local/root "components/middleware"}
-                                ;fully/repository             {:local/root "components/repository-xtdb"}
-                                ;fully/resolver               {:local/root "components/resolver-pathom"}
-                                ;fully/ring-handler           {:local/root "components/ring-handler-reitit"}
-                                ;fully/ring-server            {:local/root "components/ring-server-jetty"}
-                                ;fully/routes                 {:local/root "components/routes-default"}
-                                ;fully/schema                 {:local/root "components/schema-malli"}
-                                ;fully/system                 {:local/root "components/system"}
-                                ;fully/server                 {:local/root "bases/server"}
-                                }
+                                      ;fully/config                 {:local/root "components/config-aero"}
+                                      ;fully/errors                 {:local/root "components/errors"}
+                                      ;fully/logger                 {:local/root "components/logger-timbre"}
+                                      ;fully/middleware             {:local/root "components/middleware"}
+                                      ;fully/repository             {:local/root "components/repository-xtdb"}
+                                      ;fully/resolver               {:local/root "components/resolver-pathom"}
+                                      ;fully/ring-handler           {:local/root "components/ring-handler-reitit"}
+                                      ;fully/ring-server            {:local/root "components/ring-server-jetty"}
+                                      ;fully/routes                 {:local/root "components/routes-default"}
+                                      ;fully/schema                 {:local/root "components/schema-malli"}
+                                      ;fully/system                 {:local/root "components/system"}
+                                      ;fully/server                 {:local/root "bases/server"}
+                                      }
 
-                  :main-opts   ["-e" "(require,'hashp.core)"
-                                "-m" "nrepl.cmdline"]}
+                        :main-opts   ["-e" "(require,'hashp.core)"
+                                      "-m" "nrepl.cmdline"]}
 
-           :test {:extra-paths ["components/clj/repository-xtdb/test"
-                                "components/clj/entity-manager-xtdb/test"
-                                "components/cljc/test-helper/src"
-                                "components/cljc/schema-manager-malli/test"]}
+           :storybooks {:extra-paths ["projects/cljs/storybook/src"]}
 
-           :poly {:main-opts  ["-m" "polylith.clj.core.poly-cli.core"]
-                  :extra-deps {polyfy/polylith
-                               {:git/url   "https://github.com/polyfy/polylith"
-                                :sha       "INSERT_LATEST_SHA_HERE"
-                                :deps/root "projects/poly"}}}}}
+           :test       {:extra-paths ["components/clj/repository-xtdb/test"
+                                      "components/clj/entity-manager-xtdb/test"
+                                      "components/cljc/test-helper/src"
+                                      "components/cljc/schema-manager-malli/test"]}
+
+           :poly       {:main-opts  ["-m" "polylith.clj.core.poly-cli.core"]
+                        :extra-deps {polyfy/polylith
+                                     {:git/url   "https://github.com/polyfy/polylith"
+                                      :sha       "INSERT_LATEST_SHA_HERE"
+                                      :deps/root "projects/poly"}}}}}

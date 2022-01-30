@@ -1,9 +1,7 @@
 (ns dev
   (:require [clojure.tools.namespace.repl :as tn]
             [clojure.tools.namespace.reload]
-            [system :refer :all]
-            [fully.server.core :refer [start-app! stop-app!]]))
-
+            [fully.system.api :refer [system start-system! stop-system!]]))
 
 (defn refresh-ns
   "Refresh/reloads all the namespace"
@@ -13,12 +11,12 @@
 (defn start!
   "Mount starts life cycle of runtime state"
   []
-  (reset! system (start-app!)))
+  (start-system!))
 
 (defn stop!
   "Mount stops life cycle of runtime state"
   []
-  (swap! system stop-app!))
+  (stop-system!))
 
 (defn schema-manager [] (:schema-manager @system))
 

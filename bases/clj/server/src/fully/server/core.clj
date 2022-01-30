@@ -1,16 +1,11 @@
 (ns fully.server.core
-  (:require [fully.system.api :as sys]
-            [com.stuartsierra.component :as component])
+  (:require [fully.system.api :refer [start-system! stop-system!]])
   (:gen-class))
 
-(defn start-app! []
-  (component/start-system (sys/create-system)))
 
-(defn stop-app! [system]
-  (component/stop-system system))
 
 (defn -main [& args]
-  (let [system (start-app!)]
-    (.addShutdownHook
-      (Runtime/getRuntime)
-      (Thread. ^Runnable (fn [] (stop-app! system))))))
+  (start-system!)
+  (.addShutdownHook
+    (Runtime/getRuntime)
+    (Thread. ^Runnable (fn [] (stop-system!)))))

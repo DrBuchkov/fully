@@ -1,6 +1,5 @@
 (ns fully.repository.core
-  (:require [fully.config.api :refer [env]]
-            [fully.errors.api :as err]
+  (:require [fully.errors.api :as err]
             [fully.logger.api :as log]
             [fully.repository-protocol.api :as repo]
             [fully.schema-manager-protocol.api :as scm]
@@ -102,7 +101,7 @@
           updated-resource (merge current-resource entity-data)]
       (update this :transactions conj [::xtdb/put updated-resource])))
 
-  (delete [this type id]
+  (delete [this _ id]
     (update this :transactions conj [::xtdb/delete id]))
 
   (flush! [this]

@@ -5,3 +5,10 @@
 **/*.iml
 .idea
 .cpcache
+
+**/*/node_modules
+**/*/.cpcache
+**/*/.shadow-cljs
+.clj-kondo
+
+**/*/public/js/stories

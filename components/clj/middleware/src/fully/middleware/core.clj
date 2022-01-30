@@ -1,6 +1,6 @@
 (ns fully.middleware.core
   (:require [muuntaja.middleware :as mm]
-            [ring.middleware.params :refer [wrap-params]]
+            ;[ring.middleware.params :refer [wrap-params]]
             [ring.middleware.cors :refer [wrap-cors]]
             [ring.middleware.defaults :as rmd]
             [fully.errors.api :refer [wrap-errors]]))

@@ -6,7 +6,8 @@
                         :name     "git"}
  :tag-patterns         {:release "v[0-9]*"
                         :stable  "stable-*"}
- :projects             {"development" {:alias "dev"}}
+ :projects             {"development" {:alias "dev"}
+                        "storybook" {:alias "sb"}}
  :platforms            {:default :clj
                         :clj     {:bases-path      "bases/clj"
                                   :components-path "components/clj"
